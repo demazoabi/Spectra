@@ -1,0 +1,68 @@
+import "./imports/DwyerPatterns.spectra"
+
+spec CatchingIntruder
+define D := 7;
+type Dim = Int(0..D);
+
+sys Dim robotX0;
+sys Dim robotY0;
+sys Dim robotX1;
+sys Dim robotY1;
+
+
+predicate robot0Place(Dim x, Dim y):
+    robotX0=x & robotY0=y;
+
+predicate robot1Place(Dim x, Dim y):
+    robotX1=x & robotY1=y;
+
+define
+    robot0AtLeftCorner :=robot0Place(0,0);
+    robot0AtLeftBottom :=robot0Place(0,7); 
+    robot1AtRightCorner :=robot1Place(7,0);
+    robot1Move := (robotX1 != next(robotX1)) | (robotY1 != next(robotY1));
+    
+gar ini robot0AtLeftCorner & robot1AtRightCorner;
+gar alwEv robot1Move -> ONCE(robot0AtLeftBottom);
+gar alw robotX0=next(robotX0) | robotY0=next(robotY0);
+gar alw robotX1=next(robotX1) | robotY1=next(robotY1);
+gar alw robotY0!=robotY1+1 & robotY0!=robotY1-1;
+gar alwEv robot0AtLeftBottom;
+
+env Dim obstaclePoint1X;
+env Dim obstaclePoint1Y;
+env Dim obstaclePoint2X;
+env Dim obstaclePoint2Y;
+
+define 
+    robot0AtObstacle := (robotX0 >= obstaclePoint1X) & (robotX0 <= obstaclePoint2X) & (robotY0=obstaclePoint1Y);
+    robot1AtObstacle := (robotX1 >= obstaclePoint1X) & (robotX1 <= obstaclePoint2X) & (robotY1=obstaclePoint2Y);
+
+gar alw !robot0AtObstacle;
+gar alw !robot1AtObstacle;
+
+asm alw !(obstaclePoint1X=0 & obstaclePoint1Y=0) & !(obstaclePoint1X=7 & obstaclePoint1Y=0) 
+& !(obstaclePoint1X=0 & obstaclePoint1Y=7);
+asm alw !(obstaclePoint2X=0 & obstaclePoint2Y=0) & !(obstaclePoint2X=7 & obstaclePoint2Y=0)
+& !(obstaclePoint2X=0 & obstaclePoint2Y=7);
+
+env Dim movingIntruderX;
+env Dim movingIntruderY;
+
+define 
+    robot0AtIntruder := (robotX0 = movingIntruderX) & (robotY0=movingIntruderY);
+    robot1AtIntruder := (robotX1 = movingIntruderX) & (robotY1=movingIntruderY);
+    robot0Close := (robotY0 >= movingIntruderY-1 & robotY0 <= movingIntruderY+1) |
+    (robotX0 >= movingIntruderX-1 & robotX0 <= movingIntruderX+1);
+    robot1Close := (robotY1 >= movingIntruderY-1 & robotY1 <= movingIntruderY+1) |
+    (robotX1 >= movingIntruderX-1 & robotX1 <= movingIntruderX+1);
+    
+gar alw !robot0AtIntruder;
+gar alw !robot1AtIntruder;
+gar alw robotY0!=movingIntruderY-1;
+gar alw robotY1 !=movingIntruderY-1;
+gar alwEv robot0Close;
+gar alwEv robot1Close;
+
+asm ini movingIntruderY=7;
+asm alwEv movingIntruderX!=0;
