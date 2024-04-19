@@ -1,0 +1,71 @@
+import "./imports/DwyerPatterns.spectra"
+spec Patrolling
+
+define DX := 4;
+define DY := 4;
+
+type DimX = Int(0..DX);
+type DimY = Int(0..DY);
+
+sys DimX robotX;
+sys DimY robotY;
+
+env DimX goal1X;
+env DimY goal1Y;
+env DimX goal2X;
+env DimY goal2Y;
+env DimX goal3X;
+env DimY goal3Y;
+
+predicate robotPlace(DimX x, DimY y):
+    robotX=x & robotY=y;
+
+define
+  robotAtLeftcorner :=robotPlace(0,0);
+  robotAtTarget1 := robotPlace(goal1X,goal1Y);
+  robotAtTarget2 :=robotPlace(goal2X,goal2Y);
+  robotAtTarget3 := robotPlace(goal3X,goal3Y); 
+  robotAtTarget :=robotAtTarget1|robotAtTarget2|robotAtTarget1;
+
+//robot visit targets       
+gar alwEv robotAtTarget1; 
+gar alwEv robotAtTarget2;
+gar alwEv robotAtTarget3;
+gar trig [true]*[robotAtTarget] |=>[true]*[robotAtLeftcorner];
+
+env boolean Target1Blocked;
+env boolean Target2Blocked;
+env boolean Target3Blocked;
+
+env boolean engineProblem;
+
+define 
+  robotAtRightcorner := robotPlace(4,0);
+
+//re charge
+gar trig [true]*[engineProblem] |=>[true]*[robotAtRightcorner]{4,};
+
+//not visiting blocked targets
+gar alw Target1Blocked -> !(robotAtTarget1);
+gar alw Target2Blocked -> !(robotAtTarget2);
+gar alw Target3Blocked -> !(robotAtTarget3);
+asm alw !(goal1X=4 & goal1Y=0); 
+asm alw !(goal2X=4 & goal2Y=0); 
+asm alw !(goal3X=4 & goal3Y=0); 
+// non well separated core
+asm alwEv robotAtTarget;
+
+env DimX movingObstacleX;
+env DimY movingObstacleY; 
+
+predicate obstaclePlace(DimX x, DimY y):
+    movingObstacleX=x & movingObstacleY=y;
+
+define
+  robotAtMObstacle:= robotPlace(movingObstacleX,movingObstacleY);
+// not visiting sliding obstacle  
+gar alw !(robotAtMObstacle);
+gar alwEv obstaclePlace(0,movingObstacleY);
+gar alwEv obstaclePlace(4,movingObstacleY);
+
+// no vaucities

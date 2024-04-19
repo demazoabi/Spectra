@@ -1,0 +1,43 @@
+import "./imports/DwyerPatterns.spectra"
+spec Patrolling
+
+define DX := 4;
+define DY := 4;
+
+type DimX = Int(0..DX);
+type DimY = Int(0..DY);
+
+sys DimX robotX;
+sys DimY robotY;
+
+env DimX goal1X;
+env DimY goal1Y;
+env DimX goal2X;
+env DimY goal2Y;
+env DimX goal3X;
+env DimY goal3Y;
+
+predicate robotPlace(DimX x, DimY y):
+    robotX=x & robotY=y;
+
+define
+  robotAtLeftcorner :=robotPlace(0,0);
+  robotAtTarget1 := robotPlace(goal1X,goal1Y);
+  robotAtTarget2 :=robotPlace(goal2X,goal2Y);
+  robotAtTarget3 := robotPlace(goal3X,goal3Y); 
+  robotAtTarget :=robotAtTarget1|robotAtTarget2|robotAtTarget3;
+
+//robot visit targets     
+gar alwEv robotAtTarget1; 
+gar alwEv robotAtTarget2;
+gar alwEv robotAtTarget3;
+gar trig [true]*[robotAtTarget] |=>[true]*[robotAtLeftcorner];
+
+env boolean engineProblem;
+
+define 
+  robotAtRightcorner := robotPlace(4,0);
+//re charge 
+gar trig [true]*[engineProblem] |=>[true]*[robotAtRightcorner]{4,};
+
+
