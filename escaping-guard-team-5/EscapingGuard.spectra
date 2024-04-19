@@ -1,0 +1,58 @@
+import "./imports/DwyerPatterns.spectra"
+
+spec EscapingGuard
+
+define D := 7;
+
+type Dim = Int(0..D);
+
+sys Dim robotX;
+sys Dim robotY;
+
+env Dim T1X;
+env Dim T1Y;
+env Dim T2X;
+env Dim T2Y;
+env Dim T3X;
+env Dim T3Y;
+
+predicate robotPlace(Dim x, Dim y):
+    robotX=x & robotY=y;
+
+define
+  robotAtRightCorner :=robotPlace(7,0);
+  robotAtTarget1 := robotPlace(T1X,T1Y);
+  robotAtTarget2 :=robotPlace(T2X,T2Y);
+  robotAtTarget3 := robotPlace(T3X,T3Y); 
+
+gar ini robotAtRightCorner;
+gar alwEv robotAtTarget1; 
+gar alwEv robotAtTarget2;
+gar alwEv robotAtTarget3;
+
+gar RobotVisitsT2BetweenT1AndT3:
+P_becomes_true_between_Q_and_R(robotAtTarget2,robotAtTarget1,robotAtTarget3);
+
+asm alw !(T2X=T3X & T2Y=T3Y);
+
+env Dim guardPoint1X;
+env Dim guardPoint1Y;
+env Dim guardPoint2X;
+env Dim guardPoint2Y;
+
+define
+  robotAtGuard:= (robotPlace(guardPoint1X,guardPoint1Y)|robotPlace(guardPoint1X+1,guardPoint1Y)
+  	| robotPlace(guardPoint2X-1,guardPoint2Y)|robotPlace(guardPoint2X,guardPoint2Y));
+  target1AtGuard:=((T1X=guardPoint1X & T1Y=guardPoint1Y)|(T1X=guardPoint1X+1 & T1Y=guardPoint1Y)
+    |(T1X=guardPoint2X-1 & T1Y=guardPoint2Y)|(T1X=guardPoint2X & T1Y=guardPoint2Y));
+  target2AtGuard:=((T2X=guardPoint1X & T2Y=guardPoint1Y)|(T2X=guardPoint1X+1 & T2Y=guardPoint1Y)
+    |(T2X=guardPoint2X-1 & T2Y=guardPoint2Y)|(T2X=guardPoint2X & T2Y=guardPoint2Y));
+  target3AtGuard:=((T3X=guardPoint1X & T3Y=guardPoint1Y)|(T3X=guardPoint1X+1 & T3Y=guardPoint1Y)
+    |(T3X=guardPoint2X-1 & T3Y=guardPoint2Y)|(T3X=guardPoint2X & T3Y=guardPoint2Y));
+  	
+  
+gar alw !robotAtGuard;
+asm ini guardPoint1X=0 & guardPoint1Y=0 & guardPoint2X=1 & guardPoint2Y=1;
+asm alwEv !target1AtGuard ;
+asm alwEv !target2AtGuard ;
+asm alwEv !target3AtGuard ;
